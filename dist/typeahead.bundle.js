@@ -1581,8 +1581,12 @@
                 }
             },
             _select: function select(datum) {
-                this.input.setQuery(datum.value);
-                this.input.setInputValue(datum.value, true);
+                var value = datum.value;
+                if (value.name) {
+                    value = value.name;
+                }
+                this.input.setQuery(value);
+                this.input.setInputValue(value, true);
                 this._setLanguageDirection();
                 this.eventBus.trigger("selected", datum.raw, datum.datasetName);
                 this.dropdown.close();
