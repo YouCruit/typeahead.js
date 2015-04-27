@@ -736,44 +736,14 @@
     var css = function() {
         "use strict";
         var css = {
-            wrapper: {
-                position: "relative",
-                display: "inline-block"
-            },
-            hint: {
-                position: "absolute",
-                top: "0",
-                left: "0",
-                borderColor: "transparent",
-                boxShadow: "none",
-                opacity: "1"
-            },
-            input: {
-                position: "relative",
-                verticalAlign: "top",
-                backgroundColor: "transparent"
-            },
-            inputWithNoHint: {
-                position: "relative",
-                verticalAlign: "top"
-            },
-            dropdown: {
-                position: "absolute",
-                top: "100%",
-                left: "0",
-                zIndex: "100",
-                display: "none"
-            },
-            suggestions: {
-                display: "block"
-            },
-            suggestion: {
-                whiteSpace: "nowrap",
-                cursor: "pointer"
-            },
-            suggestionChild: {
-                whiteSpace: "normal"
-            },
+            wrapper: {},
+            hint: {},
+            input: {},
+            inputWithNoHint: {},
+            dropdown: {},
+            suggestions: {},
+            suggestion: {},
+            suggestionChild: {},
             ltr: {
                 left: "0",
                 right: "auto"
@@ -967,7 +937,7 @@
             40: "down"
         };
         function Input(o) {
-            var that = this, onBlur, onFocus, onKeydown, onInput;
+            var that = this, onBlur, onFocus, onKeydown, onInput, templates;
             o = o || {};
             if (!o.input) {
                 $.error("input is missing");
@@ -978,6 +948,10 @@
             onInput = _.bind(this._onInput, this);
             this.$hint = $(o.hint);
             this.$input = $(o.input).on("blur.tt", onBlur).on("focus.tt", onFocus).on("keydown.tt", onKeydown);
+            if (o.datasets && o.datasets.length > 0 && o.datasets[0].templates) {
+                templates = o.datasets[0].templates;
+            }
+            this.templates = getTemplates(templates);
             if (this.$hint.length === 0) {
                 this.setHint = this.getHint = this.clearHint = this.clearHintIfInvalid = _.noop;
             }
@@ -993,6 +967,14 @@
             }
             this.query = this.$input.val();
             this.$overflowHelper = buildOverflowHelper(this.$input);
+        }
+        function getTemplates(templates) {
+            return {
+                input: templates.input || inputTemplate
+            };
+            function inputTemplate(input) {
+                return input;
+            }
         }
         Input.normalizeQuery = function(str) {
             return (str || "").replace(/^\s*/g, "").replace(/\s{2,}/g, " ");
@@ -1074,7 +1056,7 @@
                 return this.$input.val();
             },
             setInputValue: function setInputValue(value, silent) {
-                this.$input.val(value);
+                this.$input.val(this.templates.input(value));
                 silent ? this.clearHint() : this._checkInputValue();
             },
             resetInputValue: function resetInputValue() {
@@ -1126,21 +1108,7 @@
         });
         return Input;
         function buildOverflowHelper($input) {
-            return $('<pre aria-hidden="true"></pre>').css({
-                position: "absolute",
-                visibility: "hidden",
-                whiteSpace: "pre",
-                fontFamily: $input.css("font-family"),
-                fontSize: $input.css("font-size"),
-                fontStyle: $input.css("font-style"),
-                fontVariant: $input.css("font-variant"),
-                fontWeight: $input.css("font-weight"),
-                wordSpacing: $input.css("word-spacing"),
-                letterSpacing: $input.css("letter-spacing"),
-                textIndent: $input.css("text-indent"),
-                textRendering: $input.css("text-rendering"),
-                textTransform: $input.css("text-transform")
-            }).insertAfter($input);
+            return $('<pre aria-hidden="true"></pre>').insertAfter($input);
         }
         function areQueriesEquivalent(a, b) {
             return Input.normalizeQuery(a) === Input.normalizeQuery(b);
@@ -1277,6 +1245,9 @@
             };
             function suggestionTemplate(context) {
                 return "<p>" + displayFn(context) + "</p>";
+            }
+            function inputTemplate(input) {
+                return input;
             }
         }
         function isValidName(str) {
@@ -1484,7 +1455,8 @@
             }).onSync("suggestionClicked", this._onSuggestionClicked, this).onSync("cursorMoved", this._onCursorMoved, this).onSync("cursorRemoved", this._onCursorRemoved, this).onSync("opened", this._onOpened, this).onSync("closed", this._onClosed, this).onAsync("datasetRendered", this._onDatasetRendered, this);
             this.input = new Input({
                 input: $input,
-                hint: $hint
+                hint: $hint,
+                datasets: o.datasets
             }).onSync("focused", this._onFocused, this).onSync("blurred", this._onBlurred, this).onSync("enterKeyed", this._onEnterKeyed, this).onSync("tabKeyed", this._onTabKeyed, this).onSync("escKeyed", this._onEscKeyed, this).onSync("upKeyed", this._onUpKeyed, this).onSync("downKeyed", this._onDownKeyed, this).onSync("leftKeyed", this._onLeftKeyed, this).onSync("rightKeyed", this._onRightKeyed, this).onSync("queryChanged", this._onQueryChanged, this).onSync("whitespaceChanged", this._onWhitespaceChanged, this);
             this._setLanguageDirection();
         }

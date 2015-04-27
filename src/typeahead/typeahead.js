@@ -64,7 +64,7 @@ var Typeahead = (function() {
     .onSync('closed', this._onClosed, this)
     .onAsync('datasetRendered', this._onDatasetRendered, this);
 
-    this.input = new Input({ input: $input, hint: $hint })
+    this.input = new Input({ input: $input, hint: $hint, datasets: o.datasets })
     .onSync('focused', this._onFocused, this)
     .onSync('blurred', this._onBlurred, this)
     .onSync('enterKeyed', this._onEnterKeyed, this)

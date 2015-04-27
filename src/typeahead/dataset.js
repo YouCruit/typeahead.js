@@ -201,6 +201,10 @@ var Dataset = (function() {
     function suggestionTemplate(context) {
       return '<p>' + displayFn(context) + '</p>';
     }
+
+    function inputTemplate(input) {
+      return input;
+    }
   }
 
   function isValidName(str) {

@@ -23,7 +23,7 @@ var Input = (function() {
   // -----------
 
   function Input(o) {
-    var that = this, onBlur, onFocus, onKeydown, onInput;
+    var that = this, onBlur, onFocus, onKeydown, onInput, templates;
 
     o = o || {};
 
@@ -42,6 +42,12 @@ var Input = (function() {
     .on('blur.tt', onBlur)
     .on('focus.tt', onFocus)
     .on('keydown.tt', onKeydown);
+
+    if(o.datasets && o.datasets.length>0 && o.datasets[0].templates){
+      templates = o.datasets[0].templates;
+    }
+    this.templates = getTemplates(templates);
+
 
     // if no hint, noop all the hint related functions
     if (this.$hint.length === 0) {
@@ -75,6 +81,18 @@ var Input = (function() {
 
     // helps with calculating the width of the input's value
     this.$overflowHelper = buildOverflowHelper(this.$input);
+  }
+
+
+
+  function getTemplates(templates) {
+    return {
+      input: templates.input || inputTemplate
+    };
+
+    function inputTemplate(input) {
+      return input;
+    }
   }
 
   // static methods
@@ -197,7 +215,7 @@ var Input = (function() {
     },
 
     setInputValue: function setInputValue(value, silent) {
-      this.$input.val(value);
+      this.$input.val(this.templates.input(value));
 
       // silent prevents any additional events from being triggered
       silent ? this.clearHint() : this._checkInputValue();
@@ -280,24 +298,6 @@ var Input = (function() {
 
   function buildOverflowHelper($input) {
     return $('<pre aria-hidden="true"></pre>')
-    .css({
-      // position helper off-screen
-      position: 'absolute',
-      visibility: 'hidden',
-      // avoid line breaks and whitespace collapsing
-      whiteSpace: 'pre',
-      // use same font css as input to calculate accurate width
-      fontFamily: $input.css('font-family'),
-      fontSize: $input.css('font-size'),
-      fontStyle: $input.css('font-style'),
-      fontVariant: $input.css('font-variant'),
-      fontWeight: $input.css('font-weight'),
-      wordSpacing: $input.css('word-spacing'),
-      letterSpacing: $input.css('letter-spacing'),
-      textIndent: $input.css('text-indent'),
-      textRendering: $input.css('text-rendering'),
-      textTransform: $input.css('text-transform')
-    })
     .insertAfter($input);
   }
 
