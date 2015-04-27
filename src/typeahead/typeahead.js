@@ -328,7 +328,7 @@ var Typeahead = (function() {
     $input = $(input);
     $wrapper = $(html.wrapper).css(css.wrapper);
     $dropdown = $(html.dropdown).css(css.dropdown);
-    $hint = $input.clone().css(css.hint).css(getBackgroundStyles($input));
+    $hint = $input.clone();
 
     $hint
     .val('')
