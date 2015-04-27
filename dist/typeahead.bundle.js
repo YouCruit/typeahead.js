@@ -1624,7 +1624,7 @@
             $input = $(input);
             $wrapper = $(html.wrapper).css(css.wrapper);
             $dropdown = $(html.dropdown).css(css.dropdown);
-            $hint = $input.clone().css(css.hint).css(getBackgroundStyles($input));
+            $hint = $input.clone();
             $hint.val("").removeData().addClass("tt-hint").removeAttr("id name placeholder required").prop("readonly", true).attr({
                 autocomplete: "off",
                 spellcheck: "false",
@@ -1644,18 +1644,6 @@
                 !$input.attr("dir") && $input.attr("dir", "auto");
             } catch (e) {}
             return $input.wrap($wrapper).parent().prepend(withHint ? $hint : null).append($dropdown);
-        }
-        function getBackgroundStyles($el) {
-            return {
-                backgroundAttachment: $el.css("background-attachment"),
-                backgroundClip: $el.css("background-clip"),
-                backgroundColor: $el.css("background-color"),
-                backgroundImage: $el.css("background-image"),
-                backgroundOrigin: $el.css("background-origin"),
-                backgroundPosition: $el.css("background-position"),
-                backgroundRepeat: $el.css("background-repeat"),
-                backgroundSize: $el.css("background-size")
-            };
         }
         function destroyDomStructure($node) {
             var $input = $node.find(".tt-input");
