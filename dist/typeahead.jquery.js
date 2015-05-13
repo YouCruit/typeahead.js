@@ -556,6 +556,7 @@
                 var that = this, hasSuggestions;
                 this.$el.empty();
                 hasSuggestions = suggestions && suggestions.length;
+                this.count = hasSuggestions ? suggestions.length : 0;
                 if (!hasSuggestions && this.templates.empty) {
                     this.$el.html(getEmptyHtml()).prepend(that.templates.header ? getHeaderHtml() : null).append(that.templates.footer ? getFooterHtml() : null);
                 } else if (hasSuggestions) {
@@ -601,6 +602,9 @@
                     });
                 }
             },
+            getCount: function() {
+                return this.count;
+            },
             getRoot: function getRoot() {
                 return this.$el;
             },
@@ -610,6 +614,14 @@
                 this.canceled = false;
                 this.source(query, render);
                 function render(suggestions) {
+                    if (suggestions.length === 1) {
+                        if (!that._oldSuggestions) {
+                            that._oldSuggestions = suggestions;
+                        } else if (that._oldSuggestions[0].name && suggestions[0].name && that._oldSuggestions[0].name !== suggestions[0].name) {
+                            that.trigger("newsuggestion");
+                            that._oldSuggestions = suggestions;
+                        }
+                    }
                     if (!that.canceled && query === that.query) {
                         that._render(query, suggestions);
                     }
@@ -667,12 +679,14 @@
             this.isOpen = false;
             this.isEmpty = true;
             this.datasets = _.map(o.datasets, initializeDataset);
+            this.eventBus = o.eventBus;
             onSuggestionClick = _.bind(this._onSuggestionClick, this);
             onSuggestionMouseEnter = _.bind(this._onSuggestionMouseEnter, this);
             onSuggestionMouseLeave = _.bind(this._onSuggestionMouseLeave, this);
             this.$menu = $(o.menu).on("click.tt", ".tt-suggestion", onSuggestionClick).on("mouseenter.tt", ".tt-suggestion", onSuggestionMouseEnter).on("mouseleave.tt", ".tt-suggestion", onSuggestionMouseLeave);
             _.each(this.datasets, function(dataset) {
                 that.$menu.append(dataset.getRoot());
+                dataset.onSync("newsuggestion", that._onNewSuggestion, that);
                 dataset.onSync("rendered", that._onRendered, that);
             });
         }
@@ -690,10 +704,18 @@
             _onRendered: function onRendered() {
                 this.isEmpty = _.every(this.datasets, isDatasetEmpty);
                 this.isEmpty ? this._hide() : this.isOpen && this._show();
-                this.trigger("datasetRendered");
+                this.trigger("datasetRendered", this.datasets);
+                if (!this.rendered) {
+                    this.rendered = true;
+                    this.trigger("newDataRendered", this.datasets);
+                    this.eventBus.trigger("rendered", this.datasets);
+                }
                 function isDatasetEmpty(dataset) {
                     return dataset.isEmpty();
                 }
+            },
+            _onNewSuggestion: function onNewSuggestion() {
+                this.rendered = false;
             },
             _hide: function() {
                 this.$menu.hide();
@@ -853,8 +875,9 @@
             });
             this.dropdown = new Dropdown({
                 menu: $menu,
-                datasets: o.datasets
-            }).onSync("suggestionClicked", this._onSuggestionClicked, this).onSync("cursorMoved", this._onCursorMoved, this).onSync("cursorRemoved", this._onCursorRemoved, this).onSync("opened", this._onOpened, this).onSync("closed", this._onClosed, this).onAsync("datasetRendered", this._onDatasetRendered, this);
+                datasets: o.datasets,
+                eventBus: this.eventBus
+            }).onSync("suggestionClicked", this._onSuggestionClicked, this).onSync("cursorMoved", this._onCursorMoved, this).onSync("cursorRemoved", this._onCursorRemoved, this).onSync("opened", this._onOpened, this).onSync("closed", this._onClosed, this).onAsync("datasetRendered", this._onDatasetRendered, this).onAsync("newDataRendered", this._onNewDataRendered, this);
             this.input = new Input({
                 input: $input,
                 hint: $hint,
@@ -878,8 +901,17 @@
                 this.input.resetInputValue();
                 this._updateHint();
             },
-            _onDatasetRendered: function onDatasetRendered() {
+            _onDatasetRendered: function onDatasetRendered(event, datasets) {
                 this._updateHint();
+            },
+            _onNewDataRendered: function onNewDataRendered(event, datasets) {
+                var count = 0;
+                if (datasets && datasets.length && datasets.length === 1) {
+                    count = datasets[0].getCount();
+                }
+                if (count === 1) {
+                    this._select(this.dropdown.getDatumForTopSuggestion());
+                }
             },
             _onOpened: function onOpened() {
                 this._updateHint();

@@ -56,13 +56,14 @@ var Typeahead = (function() {
 
     this.eventBus = o.eventBus || new EventBus({ el: $input });
 
-    this.dropdown = new Dropdown({ menu: $menu, datasets: o.datasets })
+    this.dropdown = new Dropdown({ menu: $menu, datasets: o.datasets, eventBus: this.eventBus })
     .onSync('suggestionClicked', this._onSuggestionClicked, this)
     .onSync('cursorMoved', this._onCursorMoved, this)
     .onSync('cursorRemoved', this._onCursorRemoved, this)
     .onSync('opened', this._onOpened, this)
     .onSync('closed', this._onClosed, this)
-    .onAsync('datasetRendered', this._onDatasetRendered, this);
+    .onAsync('datasetRendered', this._onDatasetRendered, this)
+    .onAsync('newDataRendered', this._onNewDataRendered, this);
 
     this.input = new Input({ input: $input, hint: $hint, datasets: o.datasets })
     .onSync('focused', this._onFocused, this)
@@ -108,8 +109,18 @@ var Typeahead = (function() {
       this._updateHint();
     },
 
-    _onDatasetRendered: function onDatasetRendered() {
+    _onDatasetRendered: function onDatasetRendered(event, datasets) {
       this._updateHint();
+    },
+
+    _onNewDataRendered : function onNewDataRendered(event, datasets) {
+      var count = 0;
+      if(datasets && datasets.length && datasets.length===1){
+        count = datasets[0].getCount();
+      }
+      if(count===1){
+        this._select(this.dropdown.getDatumForTopSuggestion());
+      }
     },
 
     _onOpened: function onOpened() {

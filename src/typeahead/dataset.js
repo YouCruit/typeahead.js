@@ -67,6 +67,7 @@ var Dataset = (function() {
 
       this.$el.empty();
       hasSuggestions = suggestions && suggestions.length;
+      this.count = hasSuggestions ? suggestions.length : 0;
 
       if (!hasSuggestions && this.templates.empty) {
         this.$el
@@ -138,6 +139,10 @@ var Dataset = (function() {
 
     // ### public
 
+    getCount: function() {
+      return this.count;
+    },
+
     getRoot: function getRoot() {
       return this.$el;
     },
@@ -150,6 +155,14 @@ var Dataset = (function() {
       this.source(query, render);
 
       function render(suggestions) {
+        if(suggestions.length===1){
+          if(!that._oldSuggestions){
+            that._oldSuggestions = suggestions;
+          }else if(that._oldSuggestions[0].name && suggestions[0].name && that._oldSuggestions[0].name !== suggestions[0].name){
+            that.trigger('newsuggestion');
+            that._oldSuggestions = suggestions;
+          }
+        }
         // if the update has been canceled or if the query has changed
         // do not render the suggestions as they've become outdated
         if (!that.canceled && query === that.query) {

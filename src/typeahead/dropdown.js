@@ -24,6 +24,7 @@ var Dropdown = (function() {
     this.isEmpty = true;
 
     this.datasets = _.map(o.datasets, initializeDataset);
+    this.eventBus = o.eventBus;
 
     // bound functions
     onSuggestionClick = _.bind(this._onSuggestionClick, this);
@@ -37,6 +38,7 @@ var Dropdown = (function() {
 
     _.each(this.datasets, function(dataset) {
       that.$menu.append(dataset.getRoot());
+      dataset.onSync('newsuggestion', that._onNewSuggestion, that);
       dataset.onSync('rendered', that._onRendered, that);
     });
   }
@@ -66,9 +68,18 @@ var Dropdown = (function() {
 
       this.isEmpty ? this._hide() : (this.isOpen && this._show());
 
-      this.trigger('datasetRendered');
+      this.trigger('datasetRendered', this.datasets);
+      if(!this.rendered){
+        this.rendered = true;
+        this.trigger('newDataRendered', this.datasets);
+        this.eventBus.trigger('rendered', this.datasets);
+      }
 
       function isDatasetEmpty(dataset) { return dataset.isEmpty(); }
+    },
+
+    _onNewSuggestion: function onNewSuggestion(){
+      this.rendered = false;
     },
 
     _hide: function() {
