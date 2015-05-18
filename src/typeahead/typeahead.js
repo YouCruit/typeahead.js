@@ -218,6 +218,7 @@ var Typeahead = (function() {
 
       this.dropdown.open();
       this._setLanguageDirection();
+      this.eventBus.trigger('changed');
     },
 
     _onWhitespaceChanged: function onWhitespaceChanged() {
