@@ -1574,6 +1574,7 @@
                 query.length >= this.minLength ? this.dropdown.update(query) : this.dropdown.empty();
                 this.dropdown.open();
                 this._setLanguageDirection();
+                this.eventBus.trigger("changed");
             },
             _onWhitespaceChanged: function onWhitespaceChanged() {
                 this._updateHint();
